@@ -1,7 +1,7 @@
 {
-  "name": "teht3-1",
+  "name": "Puhelinluettelo",
   "version": "1.0.0",
-  "description": "",
+  "description": "Full Stack Open 2018 -kurssin harjoitustyo https://fullstackopen.github.io",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
