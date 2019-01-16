@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+app.use(express.static('build')) // use static files from frontend build
 
 /**
  * middleware for allowing cross-origin resource sharing.
