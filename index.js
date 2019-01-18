@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 app.use(express.static('build')) // use static files from frontend build
+const Person = require('./modules/person')
 
 /**
  * middleware for allowing cross-origin resource sharing.
@@ -26,111 +27,98 @@ const morgan = require('morgan')
 morgan.token('body', (req, res) => JSON.stringify(req.body) )
 app.use(morgan(':method :url :body :status :res[Content-Length] - :response-time ms'))
 
-/**
- * hardcoded persons-data
+/*
+ * format the person document before sending it to frontend
  */
-let persons = [
-  {
-    id: 1,
-    name: "Janne Romppanen",
-    number: "123123"    
-  },
-  {
-    id: 2,
-    name: "Niilo Nikander",
-    number: "321123"    
-  },
-  {
-    id: 3,
-    name: "Keijo Kuusisto",
-    number: "654456"    
-  },
-  {
-    id: 4,
-    name: "Minna Mallikas",
-    number: "423234"    
-  }  
-]
+const formatPerson = (person) => {
+  return ({
+    'id': person._id,
+    'name': person.name,
+    'number': person.number
+  })
+}
 
-/**
-* get server info
+/* get server info
 */
 app.get('/info', (req, res) => {
-  res.send(`<p>puhelinluettelossa ${persons.length} henkilon tiedot</p><p>${new Date()}</p>`)
+  Person.openDbConnection()
+  Person.model
+    .countDocuments()
+    .then(result => {
+      Person.closeDbConnection()
+      res.send(`<p>puhelinluettelossa ${result} henkilon tiedot</p><p>${new Date()}</p>`)
+    })
+    .catch(err => console.log('catch error:', err))
 })
 
 /**
  * get all persons
  */
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person.openDbConnection()
+  Person.model 
+    .find({}, { '__v': 0 })
+    .then(persons => {
+      res.json(persons.map(person => formatPerson(person)))
+      Person.closeDbConnection()
+    })
+    .catch(err => {
+      console.log('catch error:', err)
+    })
 })
 
 /**
  * get person by id
  */
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(p => p.id === id)
-
-  if ( !person ) {
-    return res.status(404).end()
+  if (!req.params.id) {
+    return res.status(404).end
   }
 
-  res.json(person)
+  Person.openDbConnection()
+  Person.model
+    .findById(req.params.id, { '__v': 0 })
+    .then(person => {
+      if (!person) {
+        res.send('<p>Valitettavasti henkilöä ei löytynyt.</p>')
+      }
+      Person.closeDbConnection()
+      res.json(formatPerson(person))
+    })
+    .catch(err => console.log('catch error:', err))
 })
 
 /**
- * create id for new person. id is between 0 and MAX_ID
- */
-const MAX_ID = 10000
-const getRandomId = () => {
-  return Math.floor(Math.random() * Math.floor(MAX_ID))
-}
-
-/**
- * create and add new person
+ * add new person to database.
  */
 app.post('/api/persons', (req, res) => {
   // check input validity
   if ( !req.body.name || !req.body.number) {
     return res.json({ error: 'name or number is missing' })
   }
-  else if (persons.find(p => p.name === req.body.name)) {
-    return res.json({ error: 'name must be unique' })
-  }
-
-  // create new id for person. create as long as unused if found
-  let newId = 0  
-  do {
-    newId = getRandomId()    
-  } while (persons.find(p => p.id === newId))  
-
-  const newPerson = {
-    id: newId,
+ 
+  const newPerson = Person.model({
     name: req.body.name,
     number: req.body.number
-  }  
+  })
 
-  persons = persons.concat(newPerson)
-  
-  res.json(newPerson)  
+  Person.openDbConnection()
+  newPerson
+    .save()
+    .then(person => {
+      console.log('person saved', person)
+      Person.closeDbConnection()
+      res.json(formatPerson(person))
+    })
+    .catch(err => console.log('catch error:', err))
 })
 
 /**
  * delete person by id
  */
 app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-
-  // check if person with given id exists
-  if ( !persons.find(p => p.id === id) ) {
-    return res.status(404).end()
-  }
-
-  persons = persons.filter(p => p.id !== id)
-
-  res.status(204).end()
+  console.log('delete not implemented')
+  res.status(501).end()
 })
 
 /**
