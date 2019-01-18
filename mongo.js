@@ -16,39 +16,39 @@ mongoose
   .connect(url, options)
   .then(console.log('connected to database'))
 
-// MongoDB Object for contacts in phone book
-const Contact = mongoose.model('Contact', {
+// MongoDB Model for a person in phone book
+const PersonModel = mongoose.model('Person', {
   'name': String,
   'number': String
 })
 
-// create new Contact document
-const createContact = (name, number) => {
-  const contact = new Contact({
+// create a new document from Person model
+const createPerson = (name, number) => {
+  const personDocument = new PersonModel({
     'name': name,
     'number': number
   })
 
-  return contact
+  return personDocument
 }
 
-// save contact document to database
-const saveContact = (doc) => {
+// save person document to database
+const savePerson = (doc) => {
   doc
     .save()
-    .then(result => {
-      console.log('saved to database', doc)
+    .then(person => {
+      console.log('saved to database', person)
       closeDbConnection()
     })
 }
 
-// get all contact documents from database
-const getContacts = (model) => {
+// get all person documents from database
+const getPersons = (model) => {
   model
     .find({})
-    .then(result => {
-      result.forEach((contact) => {
-        console.log(contact)
+    .then(persons => {
+      persons.forEach((person) => {
+        console.log(person)
       })
       closeDbConnection()
     })
@@ -59,10 +59,10 @@ const closeDbConnection = () => {
   console.log('database closed')
 }
 
-// contact values are given in node parameters. Usage: node mongo.js name number
+// values for creating a person document are given in terminal when starting node. Usage: node mongo.js name number
 if (process.argv[2] && process.argv[3]) {
-  const contact = createContact(process.argv[2], process.argv[3])
-  saveContact(contact)
+  const personDocument = createPerson(process.argv[2], process.argv[3])
+  savePerson(personDocument)
 } else {
-  getContacts(Contact)
+  getPersons(PersonModel)
 }
