@@ -1,3 +1,11 @@
+/**
+ * Phone book exercise for Full stack open 2018 course at https://fullstackopen.github.io/
+ *
+ * @author Janne Romppanen
+ * @license CC BY-NC-SA 3.0 https://creativecommons.org/licenses/by-nc-sa/3.0/
+ * @version 0.1
+ */
+
 const mongoose = require('mongoose')
 const fs = require('fs')
 
@@ -21,11 +29,10 @@ const personSchema = new Schema({
 
 /**
  * Format person object to match with frontend.
- * Usage <obj>.format(person)
  *
  * @see     https://mongoosejs.com/docs/api.html#schema_Schema-static
- * @param   instance (MongoDB document) of a Person model
- * @return  JSON
+ * @param   {object} MongoDB document representing a person
+ * @return  {JSON}
  */
 personSchema.statics.format = function (person) {
   return ({
@@ -42,7 +49,6 @@ var Person = mongoose.model('Person', personSchema)
 
 /**
  * Wrapper for opening database connection using mongoose.connect.
- * Usage: <obj>.prototype.openDbConnection()
  *
  * @see     https://mongoosejs.com/docs/api.html#mongoose_Mongoose-connect
  * @return  function 
@@ -52,11 +58,11 @@ Person.prototype.openDbConnection = () => {
   mongoose
     .connect(url, options)
     .then(console.log('connected to database'))
+    .catch(err => console.log(err))
 }
 
 /**
  * Wrapper for closing database connection using mongoose.close.
- * Usage: <obj>.prototype.closeDbConnection()
  *
  * @see     https://mongoosejs.com/docs/api.html#connection_Connection-close
  * @return  function

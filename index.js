@@ -1,6 +1,18 @@
+/**
+ * Phone book exercise for Full stack open 2018 course at https://fullstackopen.github.io/
+ *
+ * @author Janne Romppanen
+ * @license CC BY-NC-SA 3.0 https://creativecommons.org/licenses/by-nc-sa/3.0/
+ * @version 0.1
+ */
+
 const express = require('express')
 const app = express()
 app.use(express.static('build')) // use static files from frontend build
+
+/**
+ * MongoDB object representing a person in phone book
+ */
 const Person = require('./modules/person')
 
 /**
@@ -33,7 +45,7 @@ app.use(morgan(':method :url :body :status :res[Content-Length] - :response-time
 /** 
  * Route for getting server info
  *
- * @return  String
+ * @return {string} a number of persons stored in database with current date and time
 */
 app.get('/info', (req, res) => {
   Person.prototype.openDbConnection()
@@ -43,61 +55,64 @@ app.get('/info', (req, res) => {
       Person.prototype.closeDbConnection()
       res.send(`<p>puhelinluettelossa ${result} henkilon tiedot</p><p>${new Date()}</p>`)
     })
-    .catch(err => console.log('catch error:', err))
+    .catch(err => {
+      console.log(err)
+      res.status(500).end()
+    })
 })
 
 /**
  * Route for getting all persons
  *
- * @return  JSON with all persons in database
+ * @return {JSON} all persons from database. JSON is formatted to match with frontend's JSON
  */
 app.get('/api/persons', (req, res) => {
   Person.prototype.openDbConnection()
   Person 
     .find({}, { '__v': 0 })
     .then(persons => {
-      // format found data and send response as json
-      res.json(persons.map(person => Person.format(person)))
-      
       Person.prototype.closeDbConnection()
+      res.json(persons.map(person => Person.format(person)))
     })
     .catch(err => {
-      console.log('catch error:', err)
+      console.log(err)
+      res.status(500).end()
     })
 })
 
 /**
  * Route for getting a person by id
  *
- * @return  JSON
+ * @param {string} id of a person
+ * @return {JSON} a person with matching id or HTTP status code
  */
 app.get('/api/persons/:id', (req, res) => {
-  if (!req.params.id) {
-    return res.status(404).end
-  }
-
   Person.prototype.openDbConnection()
   Person
     .findById(req.params.id, { '__v': 0 })
     .then(person => {
-      if (!person) {
-        res.send('<p>Valitettavasti henkilöä ei löytynyt.</p>')
-      }
       Person.prototype.closeDbConnection()
-      res.json(Person.format(person))
+      if (person) {
+        res.json(Person.format(person))
+      } else {
+        res.status(404).end()
+      }
     })
-    .catch(err => console.log('catch error:', err))
+    .catch(err => {
+      console.log(err)
+      res.status(400).send({ error: 'malformatted id' })
+    })
 })
 
 /**
  * Route for adding a new person.
  *
- * @return  JSON
+ * @return {JSON} a person that is saved to database or HTTP status code
  */
 app.post('/api/persons', (req, res) => {
   // check input validity
   if ( !req.body.name || !req.body.number) {
-    return res.json({ error: 'name or number is missing' })
+    return res.status(400).send({ error: 'malformatted request' })
   }
  
   const newPerson = Person({
@@ -112,19 +127,59 @@ app.post('/api/persons', (req, res) => {
       Person.prototype.closeDbConnection()
       res.json(Person.format(person))
     })
-    .catch(err => console.log('catch error:', err))
+    .catch(err => {
+      console.log(err)
+      res.status(500).end() 
+    })
 })
 
 /**
- * delete person by id
+ * Update person by id
+ *
+ * @param {string} id of a person to be updated
+ * @return {JSON} updated person or HTTP status code
+ */
+app.put('/api/persons/:id', (req, res) => {
+  Person.prototype.openDbConnection()
+  Person
+    .findOneAndUpdate({ _id: req.params.id }, req.body, { new: true } )
+    .then(updated => {
+      if (updated) {
+        res.json(Person.format(updated))
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(err => {
+      console.log(err)
+      res.status(400).send({ error: 'malformatted id' })
+    })
+})
+
+/**
+ * Delete person by id
+ *
+ * @param {string} id of a person 
+ * @return {string} HTTP status code
  */
 app.delete('/api/persons/:id', (req, res) => {
-  console.log('delete not implemented')
-  res.status(501).end()
+  Person.prototype.openDbConnection()
+  Person
+    .findOneAndDelete({ _id: req.params.id })
+    .then(result => {
+      Person.closeDbConnection()
+      Person.prototype.closeDbConnection()
+      console.log('deleted:', result)
+      res.status(204).end()
+    })
+    .catch(err => {
+      console.log(err)
+      res.status(400).send({ error: 'malformatted id' })
+    })
 })
 
 /**
- * middleware for handling unknown routes
+ * middleware for handling requests for unknown routes
  */
 const error = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint' })
