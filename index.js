@@ -5,7 +5,6 @@
  * @license CC BY-NC-SA 3.0 https://creativecommons.org/licenses/by-nc-sa/3.0/
  * @version 0.1
  */
-
 const express = require('express')
 const app = express()
 app.use(express.static('build')) // use static files from frontend build
@@ -110,27 +109,29 @@ app.get('/api/persons/:id', (req, res) => {
  * @return {JSON} a person that is saved to database or HTTP status code
  */
 app.post('/api/persons', (req, res) => {
-  // check input validity
-  if ( !req.body.name || !req.body.number) {
-    return res.status(400).send({ error: 'malformatted request' })
-  }
- 
-  const newPerson = Person({
+  const newPerson = new Person({
     name: req.body.name,
     number: req.body.number
   })
 
   Person.prototype.openDbConnection()
-  newPerson
-    .save()
-    .then(person => {
-      Person.prototype.closeDbConnection()
-      res.json(Person.format(person))
-    })
-    .catch(err => {
-      console.log(err)
-      res.status(500).end() 
-    })
+  Person
+    .init()
+    .then(Person
+      .create(newPerson)
+      .then(Person.format)
+      .then(createdAndFormattedPerson => {
+        Person.prototype.closeDbConnection()
+        res.json(createdAndFormattedPerson)
+      })
+      .catch(err => {
+        console.log(err)
+        if (err.code === 11000) { //duplicate key error
+          return res.status(409).send({ error: 'duplicate name error' }) 
+        }
+        res.status(400).send({ error: err.message })        
+      })
+    )
 })
 
 /**

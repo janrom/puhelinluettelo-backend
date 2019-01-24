@@ -23,8 +23,15 @@ const url = `mongodb://${user}:${pass}@ds159624.mlab.com:59624/fullstack-phonebo
  */
 const Schema = mongoose.Schema
 const personSchema = new Schema({
-  'name': String,
-  'number': String
+  name: {
+    type: String,
+    required: [true, 'name is required'],
+    unique: true
+  },
+  number: {
+    type: String,
+    required: [true, 'number is required']
+  }
 })
 
 /**
