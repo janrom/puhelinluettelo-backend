@@ -126,7 +126,7 @@ app.post('/api/persons', (req, res) => {
       })
       .catch(err => {
         console.log(err)
-        if (err.code === 11000) { //duplicate key error
+        if (err.code === 11000) { // MongoDB duplicate key error
           return res.status(409).send({ error: 'duplicate name error' }) 
         }
         res.status(400).send({ error: err.message })        
@@ -145,6 +145,7 @@ app.put('/api/persons/:id', (req, res) => {
   Person
     .findOneAndUpdate({ _id: req.params.id }, req.body, { new: true } )
     .then(updated => {
+      Person.prototype.closeDbConnection()
       if (updated) {
         res.json(Person.format(updated))
       } else {
@@ -168,9 +169,7 @@ app.delete('/api/persons/:id', (req, res) => {
   Person
     .findOneAndDelete({ _id: req.params.id })
     .then(result => {
-      Person.closeDbConnection()
       Person.prototype.closeDbConnection()
-      console.log('deleted:', result)
       res.status(204).end()
     })
     .catch(err => {
