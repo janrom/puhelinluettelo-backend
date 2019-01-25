@@ -9,7 +9,7 @@ const mongoose = require('mongoose')
 require('dotenv').config()
 
 // connection string
-const url = process.env.DB_URL_PROD 
+const url = process.env.DB_URL_PROD
 
 /**
  * Schema for Person model
@@ -42,16 +42,16 @@ personSchema.statics.format = function (person) {
   })
 }
 
-/** 
+/**
  * Person model for a person in phone book.
  */
-var Person = mongoose.model('Person', personSchema) 
+var Person = mongoose.model('Person', personSchema)
 
 /**
  * Wrapper for opening database connection using mongoose.connect.
  *
  * @see     https://mongoosejs.com/docs/api.html#mongoose_Mongoose-connect
- * @return  function 
+ * @return  function
  */
 Person.prototype.openDbConnection = () => {
   const options = { 'useNewUrlParser': true }

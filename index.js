@@ -16,8 +16,8 @@ const Person = require('./modules/person')
 
 /**
  * middleware for allowing cross-origin resource sharing.
- * this is required for using resources (e.g. fonts) from another domain, port, protocol, etc. 
- * 
+ * this is required for using resources (e.g. fonts) from another domain, port, protocol, etc.
+ *
  * @see https://github.com/expressjs/cors
  */
 const cors = require('cors')
@@ -26,7 +26,7 @@ app.use(cors())
 /**
  * middleware for parsing incoming request bodies before route-handlers access them.
  * parsed data is in req.body-property.
- * 
+ *
  * @see https://github.com/expressjs/body-parser
  */
 const bodyParser = require('body-parser')
@@ -41,7 +41,7 @@ const morgan = require('morgan')
 morgan.token('body', (req, res) => JSON.stringify(req.body) )
 app.use(morgan(':method :url :body :status :res[Content-Length] - :response-time ms'))
 
-/** 
+/**
  * Route for getting server info
  *
  * @return {string} a number of persons stored in database with current date and time
@@ -67,7 +67,7 @@ app.get('/info', (req, res) => {
  */
 app.get('/api/persons', (req, res) => {
   Person.prototype.openDbConnection()
-  Person 
+  Person
     .find({}, { '__v': 0 })
     .then(persons => {
       Person.prototype.closeDbConnection()
@@ -127,9 +127,9 @@ app.post('/api/persons', (req, res) => {
       .catch(err => {
         console.log(err)
         if (err.code === 11000) { // MongoDB duplicate key error
-          return res.status(409).send({ error: 'duplicate name error' }) 
+          return res.status(409).send({ error: 'duplicate name error' })
         }
-        res.status(400).send({ error: err.message })        
+        res.status(400).send({ error: err.message })
       })
     )
 })
@@ -161,14 +161,14 @@ app.put('/api/persons/:id', (req, res) => {
 /**
  * Delete person by id
  *
- * @param {string} id of a person 
+ * @param {string} id of a person
  * @return {string} HTTP status code
  */
 app.delete('/api/persons/:id', (req, res) => {
   Person.prototype.openDbConnection()
   Person
     .findOneAndDelete({ _id: req.params.id })
-    .then(result => {
+    .then(() => {
       Person.prototype.closeDbConnection()
       res.status(204).end()
     })
