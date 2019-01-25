@@ -5,18 +5,11 @@
  * @license CC BY-NC-SA 3.0 https://creativecommons.org/licenses/by-nc-sa/3.0/
  * @version 0.1
  */
-
 const mongoose = require('mongoose')
-const fs = require('fs')
-
-// get login parameters
-const file = fs.readFileSync('dbconf', 'utf-8')
-const split = file.split(':')
-const user = split[1]
-const pass = split[3].substring(0, split[3].length - 1)
+require('dotenv').config()
 
 // connection string
-const url = `mongodb://${user}:${pass}@ds159624.mlab.com:59624/fullstack-phonebook`
+const url = process.env.DB_URL_PROD 
 
 /**
  * Schema for Person model
